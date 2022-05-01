@@ -1,5 +1,4 @@
 # Modules
-import json
 
 import requests
 from aiogram import types, executor
@@ -27,30 +26,46 @@ async def about_company(message: types.Message):
         parse_mode="html",
     )
 
-@dp.message_handler(commands=['crew'])
-async def crew(message: types.Message):
-    res = requests.get('https://api.spacexdata.com/v4/crew')
-    for name in res.json():
-        await message.answer(f'Name = {name["name"]}\nAgency = {name["agency"]}\nPhoto = {name["image"]}')
 
-@dp.message_handler(commands=['rockets'])
+@dp.message_handler(commands=["crew"])
+async def crew(message: types.Message):
+    res = requests.get("https://api.spacexdata.com/v4/crew")
+    for name in res.json():
+        await message.answer(
+            f'Name = {name["name"]}\nAgency = {name["agency"]}\nPhoto = {name["image"]}'
+        )
+
+
+@dp.message_handler(commands=["help"])
+async def help_cmd(message: types.Message):
+    await message.answer(
+        f"<strong>/start</strong> = Welcome Message\n<strong>/help</strong> = All Commands\n<strong>/about_company</strong> = All about SpaceX\n<strong>/crew</strong> = Composition of the whole team\n<strong>/rockets</strong> = List of all SpaceX rockets",
+        parse_mode="html",
+    )
+
+
+@dp.message_handler(commands=["rockets"])
 async def rocket(message: types.Message):
     res = requests.get("https://api.spacexdata.com/v4/rockets")
     mark = types.InlineKeyboardMarkup(row_width=True)
     for i in res.json():
-        mark.row(
-            types.InlineKeyboardButton(text=i["name"], callback_data=i["name"])
-        )
+        mark.row(types.InlineKeyboardButton(text=i["name"], callback_data=i["name"]))
     await message.answer(f"SELECT:", reply_markup=mark)
 
+
 # Callbacks
+
 
 @dp.callback_query_handler(lambda c: True)
 async def rocket(c: types.CallbackQuery):
     res = requests.get("https://api.spacexdata.com/v4/rockets")
     for i in res.json():
         if c.data == i["name"]:
-            await bot.edit_message_text(chat_id=c.message.chat.id, message_id=c.message.message_id, text=f'Name = {i["name"]}\nCompany = {i["company"]}\nActive = {i["active"]}\nPhoto = {i["flickr_images"][0]}')
+            await bot.edit_message_text(
+                chat_id=c.message.chat.id,
+                message_id=c.message.message_id,
+                text=f'Name = {i["name"]}\nCompany = {i["company"]}\nActive = {i["active"]}\nPhoto = {i["flickr_images"][0]}',
+            )
     if c.data == "help":
         mark = types.InlineKeyboardMarkup(row_width=1)
         mark.add(types.InlineKeyboardButton(text="Back", callback_data="back"))

@@ -1,6 +1,5 @@
 # Modules
 
-import requests
 from aiogram import Bot, Dispatcher
 from config import token
 import logging
